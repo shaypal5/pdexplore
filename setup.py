@@ -8,7 +8,7 @@ import versioneer
 
 
 INSTALL_REQUIRES = [
-	'click',
+    'click',
     'birch>=0.0.13',
     'sortedcontainers>=2.0',
     'ezenum>=0.0.3',
@@ -28,7 +28,7 @@ setuptools.setup(
     author_email="shay.palachy@gmail.com",
     name='pdexplore',
     license="MIT",
-    description='A gender-augmented Twitter network dataset.',
+    description='Basic exploration of pandas dataframes.',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     long_description=README,

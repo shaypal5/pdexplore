@@ -1,11 +1,44 @@
 """Utility functions for pdexplore."""
 
+import os
 import time
-import logging
 
 
 def nice_time_str():
     """Returns current time as a nice string."""
     gt = time.gmtime(time.time())
-    return (f'{gt.tm_year}_{gt.tm_mon:02}_{gt.tm_mday:02}_'
-            f'{gt.tm_hour:02}:{gt.tm_min:02}:{gt.tm_sec:02}')
+    return (f'{gt.tm_year}-{gt.tm_mon:02}-{gt.tm_mday:02}_'
+            f'{gt.tm_hour:02}-{gt.tm_min:02}-{gt.tm_sec:02}')
+
+
+def get_output_fpath(output_fpath, label=None):
+    if os.path.isdir(output_fpath):
+        nice_time = nice_time_str()
+        fname = f'pdexplore_{label}_{nice_time}.txt'
+        return os.path.join(output_fpath, fname)
+    elif os.path.isfile(output_fpath):
+        return output_fpath
+    else:
+        raise ValueError(
+            f"Bad value for provided output path: {output_fpath}")
+
+
+PRINT_TO_SCREEN = True
+OUTPUT_F = None
+
+
+def set_printing_to_screen(val):
+    global PRINT_TO_SCREEN
+    PRINT_TO_SCREEN = val
+
+
+def set_output_f(f_obj):
+    global OUTPUT_F
+    OUTPUT_F = f_obj
+
+
+def custom_print(string):
+    if PRINT_TO_SCREEN:
+        print(string)
+    if OUTPUT_F:
+        OUTPUT_F.write(string+'\n')
