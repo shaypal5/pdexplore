@@ -5,6 +5,10 @@ import scipy as sp
 import seaborn as sns
 from matplotlib import pyplot as plt
 from statsmodels.robust import mad
+from scipy.stats import (
+    skew,
+    skewtest,
+)
 
 from .util import (
     get_output_fpath,
@@ -21,19 +25,46 @@ DEF_NORMALITY_ALPHA = 0.05
 
 
 def _explore_numeric_series(series, count, alpha=None):
+    nona = series.dropna()
     if alpha is None:
         alpha = DEF_NORMALITY_ALPHA
     if not np.issubdtype(series.dtype, np.number):
         return
     print("\n--- Starting numeric data exploration ---")
+    comment((f"Using an α (alpha) value of {alpha*100}% for all tests. This "
+             "will be used as the significance level of every statistical test"
+             " conducted; finally, it will be re-interpreted as the control "
+             "level for the false discovery rate (FDR) of the set of conducted"
+             " tests."))
     print(f"Data mean is {series.mean():,.2f}, std is {series.std():,.2f}")
-    print("It's also usefull to examine the two corresponding robust stats:")
+    print((
+        "It's also usefull to examine the two corresponding outlier-robust "
+        "stats:"))
     print((f"Data median is {series.median():,.2f}, median absolute deviation "
-           f"(MAD) is {mad(series):,.2f}."))
+           f"(MAD) is {mad(nona):,.2f}."))
+    print((f"Data skewness is {skew(nona):,.2f}. For normally distributed "
+           "data, the skewness should be about 0. A skewness value > 0 means "
+           "that there is more weight in the left tail of the distribution."))
+    if len(nona) < 8:
+        comment("Can't perform skewness test, as N<8.")
+    else:
+        print((
+            "Performing skewness test. H0 is that the skewness of the "
+            "population that the sample was drawn from is the same as that of "
+            "a corresponding normal distribution."))
+        skew_zscore, skew_pval = skewtest(nona)
+        print((
+            f"Skew test z-score is {skew_zscore:,.2f}, p-value is "
+            f"{skew_pval:,.2f}"))
+        if skew_pval < alpha:
+            print(("The p-value is smaller than the set α; the null hypothesis"
+                   " can be rejected: data skewness is not normal-like."))
+        else:
+            print(("The p-value is larger than the set α; the null hypothesis"
+                   " cannot be rejected: data skewness is normal-like."))
 
     bold("\nStaring to test for Normal (Gaussian) data distribution.")
-    print(f"Using a significance level (α) of {alpha*100}%.")
-    if len(series) > 5000:
+    if len(nona) > 5000:
         comment((
             "SciPy implmentation for the Shapiro-Wilk test for normality "
             "does not implement parameter censoring, so for N > 5000 the W "
@@ -42,16 +73,16 @@ def _explore_numeric_series(series, count, alpha=None):
     else:
         print("Performing the Shapiro-Wilk test for normality...")
         print("Null hypothesis (H0): The data comes from a normal dist.")
-        shap_stat, shap_pval = sp.stats.shapiro(series)
+        shap_stat, shap_pval = sp.stats.shapiro(nona)
         print(f"Test statistic: {shap_stat:.3f} p-value: {shap_pval:.3f}")
         if shap_pval < alpha:
             print(("The p-value is smaller than the set α; the null hypothesis"
-                   " can be rejected: the data isn't  normally distributed."))
+                   " can be rejected: the data isn't normally distributed."))
         else:
             print(("The p-value is larger than the set α; the null hypothesis"
-                   " cannot be rejected: the data is  normally distributed."))
+                   " cannot be rejected: the data is normally distributed."))
     print("Performing the D’Agostino’s K^2 test for normality...")
-    dag_stat, dag_pval = sp.stats.normaltest(series)
+    dag_stat, dag_pval = sp.stats.normaltest(nona)
     print(f"Test statistic: {dag_stat:.3f} p-value: {dag_pval:.3f}")
     if dag_pval < alpha:
         print(("The p-value is smaller than the set α; the null hypothesis"

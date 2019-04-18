@@ -39,12 +39,22 @@ Features
 * Fully tested.
 * Compatible with Python 3.5+.
 * Pure Python.
+* Colored output using `colored <https://gitlab.com/dslackw/colored>`_.
 
 
 Basic Use
 =========
 
 TBD.
+
+
+Properties explored
+===================
+
+General
+-------
+
+* 
 
 
 Contributing
