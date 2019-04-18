@@ -3,6 +3,9 @@
 import os
 import time
 
+import colored
+from colored import stylize
+
 
 def nice_time_str():
     """Returns current time as a nice string."""
@@ -37,8 +40,27 @@ def set_output_f(f_obj):
     OUTPUT_F = f_obj
 
 
-def custom_print(string):
+def cstr(s, color='black'):
+    return f"<text style=color:{color}>{s}</text>"
+
+
+def custom_print(string, color=None, attr=None):
     if PRINT_TO_SCREEN:
-        print(string)
+        if color and attr:
+            print(stylize(string, colored.fg(color), colored.attr(attr)))
+        elif color:
+            print(stylize(string, colored.fg(color)))
+        elif attr:
+            print(stylize(string, colored.attr(attr)))
+        else:
+            print(string)
     if OUTPUT_F:
         OUTPUT_F.write(string+'\n')
+
+
+def comment(string):
+    custom_print(string, color='grey_50')
+
+
+def bold(string):
+    custom_print(string, attr='bold')

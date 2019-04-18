@@ -8,10 +8,9 @@ import versioneer
 
 
 INSTALL_REQUIRES = [
-    'click',
-    'birch>=0.0.13',
-    'sortedcontainers>=2.0',
-    'ezenum>=0.0.3',
+    'scipy>=1.2',
+    'statsmodels',
+    'colored',
 ]
 TEST_REQUIRES = [
     # testing and coverage
@@ -40,10 +39,10 @@ setuptools.setup(
     extras_require={
         'test': TEST_REQUIRES + INSTALL_REQUIRES,
     },
-    entry_points='''
-        [console_scripts]
-        twikwak=scripts.twikwak_cli:cli
-    ''',
+    # entry_points='''
+    #     [console_scripts]
+    #     twikwak=scripts.twikwak_cli:cli
+    # ''',
     classifiers=[
         # Trove classifiers
         # (https://pypi.python.org/pypi?%3Aaction=list_classifiers)

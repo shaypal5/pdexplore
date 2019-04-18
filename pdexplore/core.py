@@ -4,6 +4,7 @@ import numpy as np
 import scipy as sp
 import seaborn as sns
 from matplotlib import pyplot as plt
+from statsmodels.robust import mad
 
 from .util import (
     get_output_fpath,
@@ -11,23 +12,53 @@ from .util import (
     set_printing_to_screen,
     set_output_f,
     custom_print as print,
+    comment,
+    bold,
 )
 
 
-def _explore_numeric_series(series, count):
+DEF_NORMALITY_ALPHA = 0.05
+
+
+def _explore_numeric_series(series, count, alpha=None):
+    if alpha is None:
+        alpha = DEF_NORMALITY_ALPHA
     if not np.issubdtype(series.dtype, np.number):
         return
-    print("Starting numeric data exploration.")
-    print(f"Data mean is {series.mean():.2f}, std is {series.std():.2f}")
+    print("\n--- Starting numeric data exploration ---")
+    print(f"Data mean is {series.mean():,.2f}, std is {series.std():,.2f}")
+    print("It's also usefull to examine the two corresponding robust stats:")
+    print((f"Data median is {series.median():,.2f}, median absolute deviation "
+           f"(MAD) is {mad(series):,.2f}."))
 
-    print("Staring to test for Normal (Gaussian) data distribution.")
-    print("Performing the Shapiro-Wilk test for normality...")
-    shap_stat, shap_pval = sp.stats.shapiro(series)
-    print(f"Test statistic: {shap_stat:.3f} p-value: {shap_pval:.3f}")
+    bold("\nStaring to test for Normal (Gaussian) data distribution.")
+    print(f"Using a significance level (α) of {alpha*100}%.")
+    if len(series) > 5000:
+        comment((
+            "SciPy implmentation for the Shapiro-Wilk test for normality "
+            "does not implement parameter censoring, so for N > 5000 the W "
+            "test statistic is accurate but the p-value may not be. Thus, "
+            "and since N>5000, skipping the Shapiro-Wilk test."))
+    else:
+        print("Performing the Shapiro-Wilk test for normality...")
+        print("Null hypothesis (H0): The data comes from a normal dist.")
+        shap_stat, shap_pval = sp.stats.shapiro(series)
+        print(f"Test statistic: {shap_stat:.3f} p-value: {shap_pval:.3f}")
+        if shap_pval < alpha:
+            print(("The p-value is smaller than the set α; the null hypothesis"
+                   " can be rejected: the data isn't  normally distributed."))
+        else:
+            print(("The p-value is larger than the set α; the null hypothesis"
+                   " cannot be rejected: the data is  normally distributed."))
     print("Performing the D’Agostino’s K^2 test for normality...")
     dag_stat, dag_pval = sp.stats.normaltest(series)
     print(f"Test statistic: {dag_stat:.3f} p-value: {dag_pval:.3f}")
-
+    if dag_pval < alpha:
+        print(("The p-value is smaller than the set α; the null hypothesis"
+               " can be rejected: the data isn't  normally distributed."))
+    else:
+        print(("The p-value is larger than the set α; the null hypothesis"
+               " cannot be rejected: the data is  normally distributed."))
 
 
 def _val_counts_plot(vcounts, count, label="series"):
@@ -57,7 +88,7 @@ def _val_counts_plot(vcounts, count, label="series"):
 
 
 def _explore_series(series, label=None):
-    print(f"\n ===================={label}==================================")
+    bold(f"\n=================== {label} =================================")
     print(f"Starting to explore series {label} with pdexplore.")
     print(f"dtype: {series.dtype}")
     count = len(series)
