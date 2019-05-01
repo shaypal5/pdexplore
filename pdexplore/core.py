@@ -30,6 +30,9 @@ def _explore_numeric_series(series, count, alpha=None):
         alpha = DEF_NORMALITY_ALPHA
     if not np.issubdtype(series.dtype, np.number):
         return
+    if len(nona) < 4:
+        print("Skipping numeric exploration as N < 4.")
+        return
     print("\n--- Starting numeric data exploration ---")
     comment((f"Using an α (alpha) value of {alpha*100}% for all tests. This "
              "will be used as the significance level of every statistical test"
@@ -40,8 +43,9 @@ def _explore_numeric_series(series, count, alpha=None):
     print((
         "It's also usefull to examine the two corresponding outlier-robust "
         "stats:"))
-    print((f"Data median is {series.median():,.2f}, median absolute deviation "
-           f"(MAD) is {mad(nona):,.2f}."))
+    print((f"Median={series.median():,.2f}, min={series.min()}, "
+           f"max={series.max()}, median absolute deviation "
+           f"(MAD)={mad(nona):,.2f}."))
     print((f"Data skewness is {skew(nona):,.2f}. For normally distributed "
            "data, the skewness should be about 0. A skewness value > 0 means "
            "that there is more weight in the left tail of the distribution."))
@@ -81,15 +85,18 @@ def _explore_numeric_series(series, count, alpha=None):
         else:
             print(("The p-value is larger than the set α; the null hypothesis"
                    " cannot be rejected: the data is normally distributed."))
-    print("Performing the D’Agostino’s K^2 test for normality...")
-    dag_stat, dag_pval = sp.stats.normaltest(nona)
-    print(f"Test statistic: {dag_stat:.3f} p-value: {dag_pval:.3f}")
-    if dag_pval < alpha:
-        print(("The p-value is smaller than the set α; the null hypothesis"
-               " can be rejected: the data isn't  normally distributed."))
+    if len(nona) < 8:
+        comment("Can't perform D’Agostino’s K^2 test for normality, as N<8.")
     else:
-        print(("The p-value is larger than the set α; the null hypothesis"
-               " cannot be rejected: the data is  normally distributed."))
+        print("Performing the D’Agostino’s K^2 test for normality...")
+        dag_stat, dag_pval = sp.stats.normaltest(nona)
+        print(f"Test statistic: {dag_stat:.3f} p-value: {dag_pval:.3f}")
+        if dag_pval < alpha:
+            print(("The p-value is smaller than the set α; the null hypothesis"
+                   " can be rejected: the data isn't  normally distributed."))
+        else:
+            print(("The p-value is larger than the set α; the null hypothesis"
+                   " cannot be rejected: the data is  normally distributed."))
 
 
 def _val_counts_plot(vcounts, count, label="series"):
@@ -174,18 +181,41 @@ def explore_series(series, label=None, output_path=None, silent=False):
         )
 
 
-def _explore_df(df):
+def _explore_df(df, skip_lbl=None, skip_cond=None):
     print("Starting to explore a dataframe with pdexplore.")
     print(f"The dataframe contains {len(df.columns)} columns.")
     print(f"The dataframe contains {len(df)} rows.")
+    skipped = 0
+    if callable(skip_cond):
+        skip_cond = [skip_cond]
     for col_lbl in df.columns:
-        _explore_series(
-            series=df[col_lbl],
-            label=col_lbl,
-        )
+        col = df[col_lbl]
+        try:
+            if col_lbl in skip_lbl:
+                print(f"Skipping exploration of column {col_lbl}!")
+                skipped += 1
+                continue
+        except TypeError:
+            pass
+        try:
+            if not any([cond(col) for cond in skip_cond]):
+                _explore_series(
+                    series=col,
+                    label=col_lbl,
+                )
+            else:
+                print(f"Skipping exploration of column {col_lbl}!")
+                skipped += 1
+        except TypeError:
+            _explore_series(
+                series=col,
+                label=col_lbl,
+            )
+    if skipped > 0:
+        print(f"Explortaion of {skipped} columns was skipped.")
 
 
-def explore(df, output_path=None, silent=False):
+def explore(df, output_path=None, skip_lbl=None, skip_cond=None, silent=False):
     """Perform basic data exploration of a dataframe and prints the results.
 
     Parameters
@@ -198,6 +228,12 @@ def explore(df, output_path=None, silent=False):
         created (if missing); if a path to a directory is given, an aptly named
         file is created in it. If no path is given, output is only writted to
         the standard output (usually the screen).
+    skip_lbl : list of str, optional
+        A list of labels of columns to skip exploration for.
+    skip_cond : callable or array of callables, optional
+        If given, then for each series each condition callable is called with
+        the series as the sole argument, and if any condition callable returns
+        True, series exploration is skipped.
     silent : bool, optional
         If set to True, no output is printed to screen. Defaults to False.
     """
@@ -206,11 +242,11 @@ def explore(df, output_path=None, silent=False):
         output_path = get_output_fpath(output_path)
         with open(output_path, 'wt+') as out_f:
             set_output_f(out_f)
-            _explore_df(df)
+            _explore_df(df=df, skip_lbl=skip_lbl, skip_cond=skip_cond)
     else:
         if OUTPUT_F is None and silent:
             raise ValueError(
                 "No output path is given but function is set to"
                 " silent. That's silly. Terminating."
             )
-        _explore_df(df)
+        _explore_df(df, skip_lbl=skip_lbl, skip_cond=skip_cond)

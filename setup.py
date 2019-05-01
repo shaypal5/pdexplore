@@ -11,6 +11,7 @@ INSTALL_REQUIRES = [
     'scipy>=1.2',
     'statsmodels',
     'colored',
+    'seaborn',
 ]
 TEST_REQUIRES = [
     # testing and coverage
