@@ -100,6 +100,38 @@ class ShapiroWilkNormalityTest(_BaseNumericExploration):
     def name(self):
         return "Shapiro-Wilk normality test"
 
+    @precondition(fail_msg="Less than eight non-null values")
+    def has_atleast_eight_non_null_values(self, srs):
+        return len(srs.dropna()) >= 8
+
+    def _explore(self, srs):
+        print("Performing the D’Agostino’s K^2 test for normality...")
+        print("Null hypothesis (H0): The data comes from a normal dist.")
+        shap_stat, shap_pval = sp.stats.shapiro(srs.pdexplore['nona'])
+        self.save(srs, 'shapiro_stat', shap_stat)
+        self.save(srs, 'shapiro_pval', shap_pval)
+        print(f"Test statistic: {shap_stat:.3f} p-value: {shap_pval:.3f}")
+        if shap_pval < self.alpha:
+            print(("The p-value is smaller than the set α; the null hypothesis"
+                   " can be rejected: the data isn't normally distributed."))
+            self.save(srs, 'shapiro_normal', False)
+        else:
+            print(("The p-value is larger than the set α; the null hypothesis"
+                   " cannot be rejected: the data is normally distributed."))
+            self.save(srs, 'shapiro_normal', True)
+
+
+class DagostinoNormalityTest(_BaseNumericExploration):
+
+    def __init__(self, alpha=None):
+        if alpha is None:
+            alpha = DEF_ALPHA
+        self.alpha = alpha
+
+    @property
+    def name(self):
+        return "D’Agostino’s K^2 normality test"
+
     @precondition(fail_msg="Less than three non-null values")
     def has_atleast_four_non_null_values(self, srs):
         return len(srs.dropna()) >= 4
@@ -123,6 +155,8 @@ class ShapiroWilkNormalityTest(_BaseNumericExploration):
             print(("The p-value is larger than the set α; the null hypothesis"
                    " cannot be rejected: the data is normally distributed."))
             self.save(srs, 'shapiro_normal', True)
+
+
 
 
 DEFAULT_NUMERIC_EXPLORATIONS_ORDER = [
