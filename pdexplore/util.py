@@ -64,3 +64,7 @@ def comment(string):
 
 def bold(string):
     custom_print(string, attr='bold')
+
+
+def warning(string):
+    custom_print(string, color='yellow')

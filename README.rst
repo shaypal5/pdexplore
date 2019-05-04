@@ -45,16 +45,43 @@ Features
 Basic Use
 =========
 
-TBD.
+To let pdexplore go through each column of a dataframe and explore it, simple call the ``explore`` function:
+
+.. code-block:: python
+
+  >>> df = pd.DataFrame(
+          data=[[4, 165, 'USA'], [2, 180, 'UK'], [2, 170, 'Greece']],
+          index=['Dana', 'Jane', 'Nick'],
+          columns=['Medals', 'Height', 'Born']
+      )
+  >>> import pdexplore as pde
+  >>> pde.explore(df)
 
 
 Properties explored
 ===================
 
-General
--------
+Column-wise explorations
+------------------------
 
-* 
+General
+~~~~~~~
+
+* Number of unique values.
+* Number and rate of missing values.
+* A nice value counts plot for most frequent values.
+
+Numeric
+~~~~~~~
+
+* Basic statistics: Min, max, mean, standard deviation, median and median absolute deviation (MAD).
+* Skewness measure and a skewness test for normal-like skewness.
+* Normality tests:
+  * Shapiro-Wilk test.
+  * D'Agostino-Pearson K^2 test.
+* Checking for suspicious values:
+  * Min and max values for signed and unsigned integers for 8, 16, 32, 64 and 128-bit integers; checks for both occurence in the data, and for data length (i.e. the number of records).
+  * All 9 numbers (often used as sentinals).
 
 
 Contributing
