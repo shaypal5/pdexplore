@@ -8,6 +8,7 @@ import versioneer
 
 
 INSTALL_REQUIRES = [
+    'numpy',
     'scipy>=1.2',
     'statsmodels',
     'colored',

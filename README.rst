@@ -27,16 +27,12 @@ Install ``pdexplore`` with:
 
   pip install pdexplore
 
-Some exploration modules require ``scikit-learn``; they will simply not be loaded if ``scikit-learn`` is not found on the system, and ``pdexplore`` will issue a warning. To use them you must also `install scikit-learn <http://scikit-learn.org/stable/install.html>`_.
-
-Similarly, some exploration modules require ``nltk``; they will simply not be loaded if ``nltk`` is not found on your system, and ``pdexplore`` will issue a warning. To use them you must additionally `install nltk <http://www.nltk.org/install.html>`_.
-
 
 Features
 ========
 
 * A simple interface.
-* Fully tested.
+.. * Fully tested.
 * Compatible with Python 3.5+.
 * Pure Python.
 * Colored output using `colored <https://gitlab.com/dslackw/colored>`_.
@@ -77,9 +73,11 @@ Numeric
 * Basic statistics: Min, max, mean, standard deviation, median and median absolute deviation (MAD).
 * Skewness measure and a skewness test for normal-like skewness.
 * Normality tests:
+
   * Shapiro-Wilk test.
   * D'Agostino-Pearson K^2 test.
 * Checking for suspicious values:
+
   * Min and max values for signed and unsigned integers for 8, 16, 32, 64 and 128-bit integers; checks for both occurence in the data, and for data length (i.e. the number of records).
   * All 9 numbers (often used as sentinals).
 
