@@ -30,6 +30,8 @@ class BasicExploration(SeriesExploration):
         count = len(srs)
         unique_vals = srs.unique()
         print(f"{len(unique_vals):,} unique values over {count:,} entries.")
+        if len(unique_vals) == 1:
+            print(f"The only occuring value is {unique_vals[0]}")
         count_na = sum(srs.isna())
         print(f"{count_na*100/count:.2f}% missing values ({count_na:,}).")
         vcounts = srs.value_counts()
